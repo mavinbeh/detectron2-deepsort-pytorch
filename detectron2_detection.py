@@ -1,4 +1,5 @@
 from detectron2.utils.logger import setup_logger
+import os
 
 setup_logger()
 
@@ -12,7 +13,7 @@ class Detectron2:
 
     def __init__(self):
         self.cfg = get_cfg()
-        self.cfg.merge_from_file("detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
+        self.cfg.merge_from_file(os.path.dirname(__file__)+"/detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5  # set threshold for this model
         self.cfg.MODEL.WEIGHTS = "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
         self.predictor = DefaultPredictor(self.cfg)

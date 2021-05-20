@@ -76,7 +76,7 @@ class Detector(object):
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("VIDEO_PATH", type=str)
-    parser.add_argument("--deepsort_checkpoint", type=str, default="deep_sort/deep/checkpoint/ckpt.t7")
+    parser.add_argument("--deepsort_checkpoint", type=str, default=os.path.dirname(__file__)+"/deep_sort/deep/checkpoint/ckpt.t7")
     parser.add_argument("--max_dist", type=float, default=0.3)
     parser.add_argument("--ignore_display", dest="display", action="store_false")
     parser.add_argument("--display_width", type=int, default=800)
