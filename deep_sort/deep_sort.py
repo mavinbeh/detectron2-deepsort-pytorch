@@ -69,19 +69,8 @@ class DeepSort(object):
         self.tracker.predict()
         self.tracker.update(detections)
 
-        # output bbox identities
-        outputs = []
-        for track in self.tracker.tracks:
-            if not track.is_confirmed() or track.time_since_update > 1:
-                continue
-            box = track.to_tlwh()
-            x1,y1,x2,y2 = self._tlwh_to_xyxy(box)
-            track_id = track.track_id
-            outputs.append(np.array([x1,y1,x2,y2,track_id], dtype=np.int))
-        if len(outputs) > 0:
-            outputs = np.stack(outputs,axis=0)
-        return outputs
-
+        return self.tracker.tracks
+    
     """
     TODO:
         Convert bbox from xc_yc_w_h to xtl_ytl_w_h

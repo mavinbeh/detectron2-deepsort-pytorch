@@ -4,6 +4,7 @@ import time
 from distutils.util import strtobool
 
 import cv2
+import numpy as np
 
 from deep_sort import DeepSort
 from detectron2_detection import Detectron2
@@ -45,7 +46,7 @@ class Detector(object):
             start = time.time()
             _, im = self.vdo.retrieve()
             # im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-            bbox_xcycwh, cls_conf, cls_ids = self.detectron2.detect(im)
+            bbox_xcycwh, cls_conf, cls_ids, masks = self.detectron2.detect(im)
 
             if bbox_xcycwh is not None:
                 # select class person
@@ -55,7 +56,17 @@ class Detector(object):
                 bbox_xcycwh[:, 3:] *= 1.2
 
                 cls_conf = cls_conf[mask]
-                outputs = self.deepsort.update(bbox_xcycwh, cls_conf, im)
+                tracks = self.deepsort.update_and_return_tracks(bbox_xcycwh, cls_conf, im)
+
+                outputs = []
+                for track in tracks:
+                    output = self.calc_outputs(track)
+                    if output is not None:
+                        outputs.append(output)
+                if len(outputs) > 0:
+                    outputs = np.stack(outputs,axis=0)
+
+
                 if len(outputs) > 0:
                     bbox_xyxy = outputs[:, :4]
                     identities = outputs[:, -1]
@@ -71,6 +82,16 @@ class Detector(object):
             if self.args.save_path:
                 self.output.write(im)
             # exit(0)
+
+
+    def calc_outputs(self, track):
+        if not track.is_confirmed() or track.time_since_update > 1:
+            return
+        box = track.to_tlwh()
+        x1,y1,x2,y2 = self.deepsort._tlwh_to_xyxy(box)
+        track_id = track.track_id
+        return np.array([x1,y1,x2,y2,track_id], dtype=np.int)
+
 
 
 def parse_args():
