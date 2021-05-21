@@ -30,7 +30,7 @@ class Detector(object):
                 'masks': masks
             }
 
-            return results
+            return results, tracks
 
 if __name__ == "__main__":
     with Detector() as det:
