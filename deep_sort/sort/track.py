@@ -64,7 +64,7 @@ class Track:
     """
 
     def __init__(self, mean, covariance, track_id, n_init, max_age,
-                 feature=None, detection=None):
+                 feature=None, detection_idx=None):
         self.mean = mean
         self.covariance = covariance
         self.track_id = track_id
@@ -76,7 +76,7 @@ class Track:
         self.features = []
         if feature is not None:
             self.features.append(feature)
-        self.current_detection = detection
+        self.detection_idx = detection_idx
 
         self._n_init = n_init
         self._max_age = max_age
@@ -124,7 +124,7 @@ class Track:
         self.age += 1
         self.time_since_update += 1
 
-    def update(self, kf, detection):
+    def update(self, kf, detection, detection_idx):
         """Perform Kalman filter measurement update step and update the feature
         cache.
 
@@ -139,12 +139,13 @@ class Track:
         self.mean, self.covariance = kf.update(
             self.mean, self.covariance, detection.to_xyah())
         self.features.append(detection.feature)
-        self.current_detection = detection
 
         self.hits += 1
         self.time_since_update = 0
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
             self.state = TrackState.Confirmed
+
+        self.detection_idx = detection_idx
 
     def mark_missed(self):
         """Mark this track as missed (no association at the current time step).
@@ -153,7 +154,7 @@ class Track:
             self.state = TrackState.Deleted
         elif self.time_since_update > self._max_age:
             self.state = TrackState.Deleted
-        self.current_detection = None
+        self.detection_idx = None
 
     def is_tentative(self):
         """Returns True if this track is tentative (unconfirmed).
@@ -167,3 +168,7 @@ class Track:
     def is_deleted(self):
         """Returns True if this track is dead and should be deleted."""
         return self.state == TrackState.Deleted
+    
+    def is_associated(self):
+        """Returns True if this track is associated to an detection_id."""
+        return self.detection_idx != None
