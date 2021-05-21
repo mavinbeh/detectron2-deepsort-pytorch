@@ -59,6 +59,7 @@ class Detector(object):
                 tracks = self.deepsort.update_and_return_tracks(bbox_xcycwh, cls_conf, im)
 
                 outputs = []
+                
                 for track in tracks:
                     output = self.calc_outputs(track)
                     if output is not None:
@@ -82,6 +83,29 @@ class Detector(object):
             if self.args.save_path:
                 self.output.write(im)
             # exit(0)
+
+    def detect_and_return(self, im):
+
+        bbox_xcycwh, cls_conf, cls_ids, masks = self.detectron2.detect(im)
+
+        if bbox_xcycwh is not None:
+            # select class person
+            mask = cls_ids == 0
+
+            bbox_xcycwh = bbox_xcycwh[mask]
+            bbox_xcycwh[:, 3:] *= 1.2
+
+            cls_conf = cls_conf[mask]
+            tracks = self.deepsort.update_and_return_tracks(bbox_xcycwh, cls_conf, im)
+
+            results = {
+                'rois': bbox_xcycwh, 
+                'class_ids': cls_ids, 
+                'scores': cls_conf, 
+                'masks': masks
+            }
+
+            return results
 
 
     def calc_outputs(self, track):
