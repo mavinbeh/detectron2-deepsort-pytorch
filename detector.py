@@ -18,11 +18,14 @@ class Detector(object):
             mask = cls_ids == 0
 
             bbox_xcycwh = bbox_xcycwh[mask]
-            bbox_xcycwh[:, 3:] *= 1.2
-
-            cls_conf = cls_conf[mask]
-            tracks = self.deepsort.update_and_return_tracks(bbox_xcycwh, cls_conf, im)
-
+            #bbox_xcycwh[:, 3:] *= 1.2
+            tracks = [] 
+            try:
+                bbox_xcycwh[:, 3:] *= 1.2
+                cls_conf = cls_conf[mask]
+                tracks = self.deepsort.update_and_return_tracks(bbox_xcycwh, cls_conf, im)
+            except IndexError:
+                print("Oops!  That was no valid number.  Try again...")
             results = {
                 'rois': bbox_xcycwh, 
                 'class_ids': cls_ids, 
